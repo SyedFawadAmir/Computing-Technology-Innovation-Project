@@ -37,7 +37,8 @@ async def predict_delay(input_data: PredictionInput):
 # Prediction endpoint for pricing
 @app.post("/predict-pricing/")
 async def predict_pricing(input_data: PredictionInput):
+    route = f"{input_data.departure_port}-{input_data.arrival_port}"
     data = pd.DataFrame([[input_data.airline, input_data.departure_port, input_data.arrival_port, input_data.month]],
-                        columns=['Airline', 'Departure Port', 'Arrival Port', 'Month'])
+                        columns=['Route', 'Month'])
     pricing_prediction = pricing_model.predict(data)[0]
     return {"pricing_prediction": pricing_prediction}
