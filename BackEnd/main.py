@@ -106,11 +106,9 @@ def preprocess_pricing_input(data):
 
 # Endpoint for pricing prediction
 @app.post("/predict-pricing/")
-async def predict_pricing(request: PricingRequest):
-    # Preprocess the input data
-    input_data = preprocess_pricing_input(request.dict())
-
-    # Make prediction
-    pricing_prediction = pricing_model.predict(input_data)[0]  # Predict price
-
-    return {"predicted_price": f"${pricing_prediction:.2f}"}
+async def predict_pricing(input_data: PredictionInput):
+    route = f"{input_data.departure_port}-{input_data.arrival_port}"
+    data = pd.DataFrame([[input_data.airline, input_data.departure_port, input_data.arrival_port, input_data.month]],
+                        columns=['Route', 'Month'])
+    pricing_prediction = pricing_model.predict(data)[0]
+    return {"pricing_prediction": pricing_prediction}
