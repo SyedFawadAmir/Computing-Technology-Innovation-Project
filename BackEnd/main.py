@@ -10,6 +10,11 @@ app = FastAPI()
 # Load the trained models
 delay_model = joblib.load("models/DelayModel_compressed.joblib")
 pricing_model = joblib.load("models/PricingModel.joblib")
+month_encoder = joblib.load("models/month_encoder.joblib")
+route_encoder = joblib.load("models/route_encoder.joblib")
+poly = joblib.load("models/poly.joblib")
+x_scaler = joblib.load("models/x_scaler.joblib")
+y_scaler = joblib.load("models/y_scaler.joblib")
 
 # Define label encoders based on the provided categorical features seen during training
 airline_encoder = LabelEncoder().fit(['Qantas', 'QantasLink', 'Regional Express', 'Skywest', 'Virgin Australia', 'Jetstar', 
@@ -33,6 +38,7 @@ arriving_port_encoder = LabelEncoder().fit(['Adelaide', 'Albury', 'Alice Springs
                                             'Port Hedland', 'Port Lincoln', 'Port Macquarie', 'Newman', 'Ayers Rock', 
                                             'Gladstone', 'Geraldton', 'Emerald', 'Mount Isa', 'Bundaberg', 'Moranbah', 
                                             'Armidale', 'Tamworth'])
+
 
 # Define request model for delay prediction
 class DelayRequest(BaseModel):
@@ -100,15 +106,47 @@ class PricingRequest(BaseModel):
 
 # Helper function for preprocessing user input for pricing prediction
 def preprocess_pricing_input(data):
-    # This is similar to the delay preprocessing
-    processed_data = preprocess_delay_input(data)
-    return processed_data
+    try:
+        # Parse the date to extract month abbreviation
+        date_obj = datetime.strptime(data["date"], "%d/%m/%Y")
+        month_abbreviation = date_obj.strftime("%b")  # Get first 3 letters of the month name
 
+        # Check if the month abbreviation is valid
+        if month_abbreviation not in month_encoder.classes_:
+            raise ValueError(f"Month abbreviation '{month_abbreviation}' not recognized in the model.")
+        
+        # Encode the month abbreviation and route
+        month_encoded = month_encoder.transform([month_abbreviation])[0]
+        route = f"{data['departure_port']} - {data['arrival_port']}"
+        route_encoded = route_encoder.transform([route])[0]
+
+        # Create a DataFrame with the original features
+        input_data = pd.DataFrame({
+            "route": [route_encoded],
+            "month": [month_encoded]
+        })
+
+        # Apply scaling
+        input_data_scaled = x_scaler.transform(input_data)
+
+        # Apply polynomial transformation
+        input_data_poly = poly.transform(input_data_scaled)
+
+
+        return input_data_poly
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
 # Endpoint for pricing prediction
 @app.post("/predict-pricing/")
-async def predict_pricing(input_data: PredictionInput):
-    route = f"{input_data.departure_port}-{input_data.arrival_port}"
-    data = pd.DataFrame([[input_data.airline, input_data.departure_port, input_data.arrival_port, input_data.month]],
-                        columns=['Route', 'Month'])
-    pricing_prediction = pricing_model.predict(data)[0]
+async def predict_pricing(request: PricingRequest):
+    # Preprocess the input data
+    input_data = preprocess_pricing_input(request.dict())
+
+    # Predict using the model on scaled data
+    pricing_prediction_scaled = pricing_model.predict(input_data)[0]
+
+    # Inverse-transform the prediction to get it back to the original price scale
+    pricing_prediction = y_scaler.inverse_transform([[pricing_prediction_scaled]])[0, 0]
+
     return {"pricing_prediction": pricing_prediction}
