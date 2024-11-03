@@ -5,6 +5,7 @@ import joblib
 from datetime import datetime
 from sklearn.preprocessing import LabelEncoder
 
+# Initialize FastAPI app
 app = FastAPI()
 
 # Load the trained models
@@ -97,7 +98,7 @@ async def predict_delay(request: DelayRequest):
     delay_probability = round(prediction * 100, 2)
     return {"delay_probability": f"{delay_probability}%"}
 
-# Define request model for pricing prediction (reusing DelayRequest for simplicity)
+# Define request model for pricing prediction 
 class PricingRequest(BaseModel):
     airline: str
     departure_port: str
@@ -110,10 +111,6 @@ def preprocess_pricing_input(data):
         # Parse the date to extract month abbreviation
         date_obj = datetime.strptime(data["date"], "%d/%m/%Y")
         month_abbreviation = date_obj.strftime("%b")  # Get first 3 letters of the month name
-
-        # Check if the month abbreviation is valid
-        if month_abbreviation not in month_encoder.classes_:
-            raise ValueError(f"Month abbreviation '{month_abbreviation}' not recognized in the model.")
         
         # Encode the month abbreviation and route
         month_encoded = month_encoder.transform([month_abbreviation])[0]
@@ -131,7 +128,6 @@ def preprocess_pricing_input(data):
 
         # Apply polynomial transformation
         input_data_poly = poly.transform(input_data_scaled)
-
 
         return input_data_poly
     except ValueError as e:
