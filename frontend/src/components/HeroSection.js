@@ -1,7 +1,8 @@
+// src/components/HeroSection.js
 import React from 'react';
-import './HeroSection.css';
+import '../styles/HeroSection.css';
 
-function HeroSection() {
+function HeroSection({ setCurrentPage }) {
   return (
     <section className="hero">
       <div className="hero-overlay">
@@ -16,7 +17,7 @@ function HeroSection() {
           best fare predictions and potential delays for your journey. Say goodbye to surprises and hello to seamless 
           travel planning — with Flight Network, you're always one step ahead.
         </p>
-        <button className="hero-button">Search Your Flight</button>
+        <button className="hero-button" onClick={() => setCurrentPage('home')}>Search Your Flight</button>
       </div>
     </section>
   );
