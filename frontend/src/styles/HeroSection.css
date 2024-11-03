@@ -2,7 +2,7 @@
     position: relative;
     text-align: center;
     color: white;
-    background-image: url('/airplane.jpg'); /* Path from the public folder */
+    background-image: url('images/airplane.png'); /* Path from the public folder */
     background-size: cover;
     background-position: center;
     padding: 5rem 1rem;
