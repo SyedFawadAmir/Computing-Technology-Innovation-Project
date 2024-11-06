@@ -1,0 +1,19 @@
+.footer {
+    background-color: #002855;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+  }
+  
+  .connect, .newsletter {
+    width: 45%;
+  }
+  
+  .newsletter input {
+    padding: 10px;
+    border-radius: 5px;
+    border: none;
+    width: 80%;
+  }
+  

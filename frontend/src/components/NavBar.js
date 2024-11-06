@@ -1,17 +1,20 @@
 import React from 'react';
-import './Navbar.css';
+import '../styles/NavBar.css';
 
-function Navbar() {
+const NavBar = () => {
   return (
     <nav className="navbar">
-      <div className="navbar-logo">Flight Network</div>
-      <ul className="navbar-links">
-        <li><a href="#home">Home</a></li>
-        <li><a href="#about">About Us</a></li>
-        <li><a href="#video">Video Presentation</a></li>
-      </ul>
+      <div className="navbar-logo">
+        <img src="/Logo.png" alt="Flight Network Logo" />
+        <div className="navbar-text">Flight Network</div>
+      </div>
+      <div className="navbar-links">
+        <button className="navbar-button">Home</button>
+        <button className="navbar-button">About Us</button>
+        <button className="navbar-button">Video Presentation</button>
+      </div>
     </nav>
   );
-}
+};
 
-export default Navbar;
+export default NavBar;

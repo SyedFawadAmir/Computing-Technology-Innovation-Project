@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import pandas as pd
 import joblib
@@ -7,51 +8,72 @@ from sklearn.preprocessing import LabelEncoder
 
 app = FastAPI()
 
-# Load the trained models
-delay_model = joblib.load("models/DelayModel_compressed.joblib")
-pricing_model = joblib.load("models/PricingModel.joblib")
-month_encoder = joblib.load("models/month_encoder.joblib")
-route_encoder = joblib.load("models/route_encoder.joblib")
-poly = joblib.load("models/poly.joblib")
-x_scaler = joblib.load("models/x_scaler.joblib")
-y_scaler = joblib.load("models/y_scaler.joblib")
+# Enable CORS for frontend communication
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # Adjust with your frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-# Define label encoders based on the provided categorical features seen during training
-airline_encoder = LabelEncoder().fit(['Qantas', 'QantasLink', 'Regional Express', 'Skywest', 'Virgin Australia', 'Jetstar', 
-                                      'Macair', 'Ozjet', 'MacAir', 'Tigerair Australia', 'Virgin Australia - ATR/F100 Operations', 
-                                      'Virgin Australia Regional Airlines', 'Rex Airlines', 'virgin Australia', 'Skytrans', 'Bonza'])
+# Load the trained models and encoders
+delay_model = joblib.load("../models/DelayModel_compressed.joblib")
+pricing_model = joblib.load("../models/PricingModel.joblib")
+month_encoder = joblib.load("../models/month_encoder.joblib")
+route_encoder = joblib.load("../models/route_encoder.joblib")
+poly = joblib.load("../models/poly.joblib")
+x_scaler = joblib.load("../models/x_scaler.joblib")
+y_scaler = joblib.load("../models/y_scaler.joblib")
 
-departing_port_encoder = LabelEncoder().fit(['Adelaide', 'Albury', 'Alice Springs', 'Brisbane', 'Broome', 'Burnie', 'Cairns', 
-                                             'Canberra', 'Coffs Harbour', 'Darwin', 'Devonport', 'Dubbo', 'Gold Coast', 
-                                             'Hobart', 'Kalgoorlie', 'Launceston', 'Mackay', 'Melbourne', 'Mildura', 'Perth', 
-                                             'Rockhampton', 'Sunshine Coast', 'Sydney', 'Townsville', 'Wagga Wagga', 
-                                             'Proserpine', 'Newcastle', 'Ballina', 'Karratha', 'Hamilton Island', 'Hervey Bay', 
-                                             'Port Hedland', 'Port Lincoln', 'Port Macquarie', 'Newman', 'Ayers Rock', 
-                                             'Gladstone', 'Geraldton', 'Emerald', 'Mount Isa', 'Bundaberg', 'Moranbah', 
-                                             'Armidale', 'Tamworth'])
+# Define label encoders based on training data categories
+airline_encoder = LabelEncoder().fit([
+    'Qantas', 'QantasLink', 'Regional Express', 'Skywest', 'Virgin Australia',
+    'Jetstar', 'Macair', 'Ozjet', 'MacAir', 'Tigerair Australia',
+    'Virgin Australia - ATR/F100 Operations', 'Virgin Australia Regional Airlines',
+    'Rex Airlines', 'virgin Australia', 'Skytrans', 'Bonza'
+])
 
-arriving_port_encoder = LabelEncoder().fit(['Adelaide', 'Albury', 'Alice Springs', 'Brisbane', 'Broome', 'Burnie', 'Cairns', 
-                                            'Canberra', 'Coffs Harbour', 'Darwin', 'Devonport', 'Dubbo', 'Gold Coast', 
-                                            'Hobart', 'Kalgoorlie', 'Launceston', 'Mackay', 'Melbourne', 'Mildura', 'Perth', 
-                                            'Rockhampton', 'Sunshine Coast', 'Sydney', 'Townsville', 'Wagga Wagga', 
-                                            'Proserpine', 'Newcastle', 'Ballina', 'Karratha', 'Hamilton Island', 'Hervey Bay', 
-                                            'Port Hedland', 'Port Lincoln', 'Port Macquarie', 'Newman', 'Ayers Rock', 
-                                            'Gladstone', 'Geraldton', 'Emerald', 'Mount Isa', 'Bundaberg', 'Moranbah', 
-                                            'Armidale', 'Tamworth'])
+departing_port_encoder = LabelEncoder().fit([
+    'Adelaide', 'Albury', 'Alice Springs', 'Brisbane', 'Broome', 'Burnie', 'Cairns',
+    'Canberra', 'Coffs Harbour', 'Darwin', 'Devonport', 'Dubbo', 'Gold Coast',
+    'Hobart', 'Kalgoorlie', 'Launceston', 'Mackay', 'Melbourne', 'Mildura', 'Perth',
+    'Rockhampton', 'Sunshine Coast', 'Sydney', 'Townsville', 'Wagga Wagga',
+    'Proserpine', 'Newcastle', 'Ballina', 'Karratha', 'Hamilton Island', 'Hervey Bay',
+    'Port Hedland', 'Port Lincoln', 'Port Macquarie', 'Newman', 'Ayers Rock',
+    'Gladstone', 'Geraldton', 'Emerald', 'Mount Isa', 'Bundaberg', 'Moranbah',
+    'Armidale', 'Tamworth'
+])
 
+arriving_port_encoder = LabelEncoder().fit([
+    'Adelaide', 'Albury', 'Alice Springs', 'Brisbane', 'Broome', 'Burnie', 'Cairns',
+    'Canberra', 'Coffs Harbour', 'Darwin', 'Devonport', 'Dubbo', 'Gold Coast',
+    'Hobart', 'Kalgoorlie', 'Launceston', 'Mackay', 'Melbourne', 'Mildura', 'Perth',
+    'Rockhampton', 'Sunshine Coast', 'Sydney', 'Townsville', 'Wagga Wagga',
+    'Proserpine', 'Newcastle', 'Ballina', 'Karratha', 'Hamilton Island', 'Hervey Bay',
+    'Port Hedland', 'Port Lincoln', 'Port Macquarie', 'Newman', 'Ayers Rock',
+    'Gladstone', 'Geraldton', 'Emerald', 'Mount Isa', 'Bundaberg', 'Moranbah',
+    'Armidale', 'Tamworth'
+])
 
-# Define request model for delay prediction
+# Define request models
 class DelayRequest(BaseModel):
     airline: str
     departure_port: str
     arrival_port: str
-    date: str  # Expecting format "DD/MM/YYYY"
+    date: str  # Format "YYYY-MM-DD" expected
 
-# Helper function for preprocessing user input for delay prediction
+class PricingRequest(BaseModel):
+    airline: str
+    departure_port: str
+    arrival_port: str
+    date: str  # Format "YYYY-MM-DD" expected
+
+# Helper function for delay prediction preprocessing
 def preprocess_delay_input(data):
     try:
-        # Parse the date to extract month and year
-        date_obj = datetime.strptime(data["date"], "%d/%m/%Y")
+        # Parse the date using 'YYYY-MM-DD' format
+        date_obj = datetime.strptime(data["date"], "%Y-%m-%d")
         month = date_obj.month
         year = date_obj.year
         
@@ -60,93 +82,62 @@ def preprocess_delay_input(data):
         departing_port_encoded = departing_port_encoder.transform([data["departure_port"]])[0]
         arriving_port_encoded = arriving_port_encoder.transform([data["arrival_port"]])[0]
         
-        # Create a DataFrame that includes all expected features in the correct order
+        # Prepare data for the model
         processed_data = pd.DataFrame({
             "Airline_Encoded": [airline_encoded],
             "Departing_Port_Encoded": [departing_port_encoded],
             "Arriving_Port_Encoded": [arriving_port_encoded],
             "Month_Num": [month],
-            "Cancellations": [0.000834],  # Average value as default
-            "Route_Encoded": [0],  # Default value
-            "Sectors_Flown": [0.0005],  # Average value as default
-            "Sectors_Scheduled": [0.0005],  # Average value as default
+            "Cancellations": [0.000834],
+            "Route_Encoded": [0],
+            "Sectors_Flown": [0.0005],
+            "Sectors_Scheduled": [0.0005],
             "Year": [year]
         })
 
-        # Reorder columns to match the training set’s feature order
+        # Order columns as per model training data
         expected_columns = [
             "Sectors_Scheduled", "Sectors_Flown", "Cancellations", "Year", "Month_Num",
             "Airline_Encoded", "Departing_Port_Encoded", "Arriving_Port_Encoded", "Route_Encoded"
         ]
-        processed_data = processed_data[expected_columns]
+        return processed_data[expected_columns]
 
-        return processed_data
     except ValueError as e:
-        raise HTTPException(status_code=400, detail="Input contains values that were not seen during training.")
+        raise HTTPException(status_code=400, detail="Invalid input format or data")
 
 # Endpoint for delay prediction
 @app.post("/predict-delay/")
 async def predict_delay(request: DelayRequest):
-    # Preprocess the input data
     input_data = preprocess_delay_input(request.dict())
-
-    # Make prediction
-    prediction = delay_model.predict_proba(input_data)[:, 1][0]  # Probability of delay
-
-    # Convert to percentage for user-friendly output
+    prediction = delay_model.predict_proba(input_data)[:, 1][0]
     delay_probability = round(prediction * 100, 2)
     return {"delay_probability": f"{delay_probability}%"}
 
-# Define request model for pricing prediction (reusing DelayRequest for simplicity)
-class PricingRequest(BaseModel):
-    airline: str
-    departure_port: str
-    arrival_port: str
-    date: str  # Expecting format "DD/MM/YYYY"
-
-# Helper function for preprocessing user input for pricing prediction
+# Helper function for pricing prediction preprocessing
 def preprocess_pricing_input(data):
     try:
-        # Parse the date to extract month abbreviation
-        date_obj = datetime.strptime(data["date"], "%d/%m/%Y")
-        month_abbreviation = date_obj.strftime("%b")  # Get first 3 letters of the month name
-
-        # Check if the month abbreviation is valid
-        if month_abbreviation not in month_encoder.classes_:
-            raise ValueError(f"Month abbreviation '{month_abbreviation}' not recognized in the model.")
+        # Parse date for month abbreviation
+        date_obj = datetime.strptime(data["date"], "%Y-%m-%d")
+        month_abbreviation = date_obj.strftime("%b")
         
-        # Encode the month abbreviation and route
+        # Encode month and route
         month_encoded = month_encoder.transform([month_abbreviation])[0]
         route = f"{data['departure_port']} - {data['arrival_port']}"
         route_encoded = route_encoder.transform([route])[0]
 
-        # Create a DataFrame with the original features
-        input_data = pd.DataFrame({
-            "route": [route_encoded],
-            "month": [month_encoded]
-        })
-
-        # Apply scaling
+        # Apply transformations
+        input_data = pd.DataFrame({"route": [route_encoded], "month": [month_encoded]})
         input_data_scaled = x_scaler.transform(input_data)
-
-        # Apply polynomial transformation
         input_data_poly = poly.transform(input_data_scaled)
-
-
         return input_data_poly
+
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    
+
 # Endpoint for pricing prediction
 @app.post("/predict-pricing/")
 async def predict_pricing(request: PricingRequest):
-    # Preprocess the input data
     input_data = preprocess_pricing_input(request.dict())
-
-    # Predict using the model on scaled data
     pricing_prediction_scaled = pricing_model.predict(input_data)[0]
-
-    # Inverse-transform the prediction to get it back to the original price scale
     pricing_prediction = y_scaler.inverse_transform([[pricing_prediction_scaled]])[0, 0]
-
     return {"pricing_prediction": pricing_prediction}

@@ -1,29 +1,46 @@
 .navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #082567;
-    padding: 1rem 2rem;
-    color: white;
-  }
-  
-  .navbar-logo {
-    font-size: 1.5rem;
-    font-weight: bold;
-  }
-  
-  .navbar-links {
-    list-style: none;
-    display: flex;
-    gap: 1.5rem;
-  }
-  
-  .navbar-links li a {
-    color: white;
-    text-decoration: none;
-  }
-  
-  .navbar-links li a:hover {
-    text-decoration: underline;
-  }
-  
+  background-color: #002244; /* Header color */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30px 30px; /* Increased padding for vertical height */
+}
+
+.navbar-logo {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-logo img {
+  width: 70px; /* Increased size of logo */
+  margin-right: 20px; /* Space between logo and text */
+}
+
+.navbar-text {
+  color: #ffffff; /* Text color */
+  font-size: 24px; /* Adjust as needed */
+  font-weight: bold; /* Adjust as needed */
+  margin-left: 10px; /* Adjust spacing between logo and text */
+}
+
+.navbar-links {
+  display: flex;
+  gap: 20px;
+}
+
+.navbar-button {
+  color: #002244; /* Blue text */
+  background-color: #ffffff; /* White background */
+  padding: 12px 20px; /* Button padding */
+  border: none; /* Remove default button border */
+  border-radius: 5px;
+  text-decoration: none;
+  font-size: 16px; /* Font size for text inside buttons */
+  font-weight: bold;
+  cursor: pointer; /* Pointer cursor on hover */
+}
+
+.navbar-button:hover {
+  background-color: #004080; /* Slightly darker blue on hover */
+  color: #ffffff; /* White text on hover */
+}
