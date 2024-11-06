@@ -119,3 +119,26 @@
     color: #fff;
   }
   
+/* Enhanced Error message styling */
+.error-text {
+    color: #d9534f; /* Bootstrap's danger color for errors */
+    font-size: 14px;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+    background-color: #f8d7da; /* Light red background */
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid #f5c6cb;
+    width: fit-content;
+  }
+  
+  /* Optional icon style for error */
+  .error-text::before {
+    content: '⚠️';
+    margin-right: 8px;
+    font-size: 16px;
+  }
+  
+  

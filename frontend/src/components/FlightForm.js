@@ -17,10 +17,12 @@ const FlightForm = () => {
     travelTime: true
   });
   
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormState({ ...formState, [e.target.id]: e.target.value });
+    setErrors((prevErrors) => ({ ...prevErrors, [e.target.id]: '' }));
   };
 
   const handleToggle = (section) => {
@@ -30,8 +32,32 @@ const FlightForm = () => {
     }));
   };
 
+  const validateInput = () => {
+    const newErrors = {};
+
+    if (!formState.airline) newErrors.airline = 'Airline is required.';
+    if (!formState.departurePort) newErrors.departurePort = 'Departure port is required.';
+    if (!formState.arrivalPort) newErrors.arrivalPort = 'Arrival port is required.';
+    if (!formState.travelTime) newErrors.travelTime = 'Travel time is required.';
+
+    const titleCasePattern = /^[A-Z][a-z]*(?: [A-Z][a-z]*)*$/;
+    if (formState.airline && !titleCasePattern.test(formState.airline)) {
+      newErrors.airline = 'Airline name should start with a capital letter.';
+    }
+    if (formState.departurePort && !titleCasePattern.test(formState.departurePort)) {
+      newErrors.departurePort = 'Departure port should start with a capital letter.';
+    }
+    if (formState.arrivalPort && !titleCasePattern.test(formState.arrivalPort)) {
+      newErrors.arrivalPort = 'Arrival port should start with a capital letter.';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateInput()) return;
 
     try {
       const delayResponse = await axios.post('http://localhost:8000/predict-delay/', {
@@ -56,6 +82,7 @@ const FlightForm = () => {
       });
     } catch (error) {
       console.error('Error fetching predictions:', error);
+      setErrors({ submit: 'Failed to fetch predictions. Please try again later.' });
     }
   };
 
@@ -66,6 +93,7 @@ const FlightForm = () => {
       arrivalPort: '',
       travelTime: ''
     });
+    setErrors({});
   };
 
   return (
@@ -91,6 +119,7 @@ const FlightForm = () => {
                   value={formState.airline}
                   onChange={handleChange}
                 />
+                {errors.airline && <span className="error-text">{errors.airline}</span>}
               </div>
             )}
           </div>
@@ -109,6 +138,7 @@ const FlightForm = () => {
                     value={formState.departurePort}
                     onChange={handleChange}
                   />
+                  {errors.departurePort && <span className="error-text">{errors.departurePort}</span>}
                 </div>
                 <div className="form-group">
                   <label htmlFor="arrivalPort">Arrival Port</label>
@@ -119,6 +149,7 @@ const FlightForm = () => {
                     value={formState.arrivalPort}
                     onChange={handleChange}
                   />
+                  {errors.arrivalPort && <span className="error-text">{errors.arrivalPort}</span>}
                 </div>
               </>
             )}
@@ -135,6 +166,7 @@ const FlightForm = () => {
                   value={formState.travelTime}
                   onChange={handleChange}
                 />
+                {errors.travelTime && <span className="error-text">{errors.travelTime}</span>}
               </div>
             )}
           </div>
@@ -147,6 +179,7 @@ const FlightForm = () => {
               Predict
             </button>
           </div>
+          {errors.submit && <span className="error-text">{errors.submit}</span>}
         </form>
       </div>
     </div>
