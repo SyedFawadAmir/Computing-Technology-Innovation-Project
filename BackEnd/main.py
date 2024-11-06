@@ -8,38 +8,42 @@ from sklearn.preprocessing import LabelEncoder
 # Initialize FastAPI app
 app = FastAPI()
 
-# Load the trained models
+# Load the trained models and scalers
 delay_model = joblib.load("models/DelayModel_compressed.joblib")
 pricing_model = joblib.load("models/PricingModel.joblib")
-month_encoder = joblib.load("models/month_encoder.joblib")
-route_encoder = joblib.load("models/route_encoder.joblib")
+month_encoder = joblib.load("models/month_encoder.pkl")  # Load your custom month encoder
 poly = joblib.load("models/poly.joblib")
 x_scaler = joblib.load("models/x_scaler.joblib")
 y_scaler = joblib.load("models/y_scaler.joblib")
 
 # Define label encoders based on the provided categorical features seen during training
-airline_encoder = LabelEncoder().fit(['Qantas', 'QantasLink', 'Regional Express', 'Skywest', 'Virgin Australia', 'Jetstar', 
-                                      'Macair', 'Ozjet', 'MacAir', 'Tigerair Australia', 'Virgin Australia - ATR/F100 Operations', 
-                                      'Virgin Australia Regional Airlines', 'Rex Airlines', 'virgin Australia', 'Skytrans', 'Bonza'])
+airline_encoder = LabelEncoder().fit([
+    'Qantas', 'QantasLink', 'Regional Express', 'Skywest', 'Virgin Australia', 'Jetstar', 
+    'Macair', 'Ozjet', 'MacAir', 'Tigerair Australia', 'Virgin Australia - ATR/F100 Operations', 
+    'Virgin Australia Regional Airlines', 'Rex Airlines', 'virgin Australia', 'Skytrans', 'Bonza'
+])
 
-departing_port_encoder = LabelEncoder().fit(['Adelaide', 'Albury', 'Alice Springs', 'Brisbane', 'Broome', 'Burnie', 'Cairns', 
-                                             'Canberra', 'Coffs Harbour', 'Darwin', 'Devonport', 'Dubbo', 'Gold Coast', 
-                                             'Hobart', 'Kalgoorlie', 'Launceston', 'Mackay', 'Melbourne', 'Mildura', 'Perth', 
-                                             'Rockhampton', 'Sunshine Coast', 'Sydney', 'Townsville', 'Wagga Wagga', 
-                                             'Proserpine', 'Newcastle', 'Ballina', 'Karratha', 'Hamilton Island', 'Hervey Bay', 
-                                             'Port Hedland', 'Port Lincoln', 'Port Macquarie', 'Newman', 'Ayers Rock', 
-                                             'Gladstone', 'Geraldton', 'Emerald', 'Mount Isa', 'Bundaberg', 'Moranbah', 
-                                             'Armidale', 'Tamworth'])
+departing_port_encoder = LabelEncoder().fit([
+    'Adelaide', 'Albury', 'Alice Springs', 'Brisbane', 'Broome', 'Burnie', 'Cairns', 
+    'Canberra', 'Coffs Harbour', 'Darwin', 'Devonport', 'Dubbo', 'Gold Coast', 
+    'Hobart', 'Kalgoorlie', 'Launceston', 'Mackay', 'Melbourne', 'Mildura', 'Perth', 
+    'Rockhampton', 'Sunshine Coast', 'Sydney', 'Townsville', 'Wagga Wagga', 
+    'Proserpine', 'Newcastle', 'Ballina', 'Karratha', 'Hamilton Island', 'Hervey Bay', 
+    'Port Hedland', 'Port Lincoln', 'Port Macquarie', 'Newman', 'Ayers Rock', 
+    'Gladstone', 'Geraldton', 'Emerald', 'Mount Isa', 'Bundaberg', 'Moranbah', 
+    'Armidale', 'Tamworth'
+])
 
-arriving_port_encoder = LabelEncoder().fit(['Adelaide', 'Albury', 'Alice Springs', 'Brisbane', 'Broome', 'Burnie', 'Cairns', 
-                                            'Canberra', 'Coffs Harbour', 'Darwin', 'Devonport', 'Dubbo', 'Gold Coast', 
-                                            'Hobart', 'Kalgoorlie', 'Launceston', 'Mackay', 'Melbourne', 'Mildura', 'Perth', 
-                                            'Rockhampton', 'Sunshine Coast', 'Sydney', 'Townsville', 'Wagga Wagga', 
-                                            'Proserpine', 'Newcastle', 'Ballina', 'Karratha', 'Hamilton Island', 'Hervey Bay', 
-                                            'Port Hedland', 'Port Lincoln', 'Port Macquarie', 'Newman', 'Ayers Rock', 
-                                            'Gladstone', 'Geraldton', 'Emerald', 'Mount Isa', 'Bundaberg', 'Moranbah', 
-                                            'Armidale', 'Tamworth'])
-
+arriving_port_encoder = LabelEncoder().fit([
+    'Adelaide', 'Albury', 'Alice Springs', 'Brisbane', 'Broome', 'Burnie', 'Cairns', 
+    'Canberra', 'Coffs Harbour', 'Darwin', 'Devonport', 'Dubbo', 'Gold Coast', 
+    'Hobart', 'Kalgoorlie', 'Launceston', 'Mackay', 'Melbourne', 'Mildura', 'Perth', 
+    'Rockhampton', 'Sunshine Coast', 'Sydney', 'Townsville', 'Wagga Wagga', 
+    'Proserpine', 'Newcastle', 'Ballina', 'Karratha', 'Hamilton Island', 'Hervey Bay', 
+    'Port Hedland', 'Port Lincoln', 'Port Macquarie', 'Newman', 'Ayers Rock', 
+    'Gladstone', 'Geraldton', 'Emerald', 'Mount Isa', 'Bundaberg', 'Moranbah', 
+    'Armidale', 'Tamworth'
+])
 
 # Define request model for delay prediction
 class DelayRequest(BaseModel):
@@ -68,7 +72,6 @@ def preprocess_delay_input(data):
             "Arriving_Port_Encoded": [arriving_port_encoded],
             "Month_Num": [month],
             "Cancellations": [0.000834],  # Average value as default
-            "Route_Encoded": [0],  # Default value
             "Sectors_Flown": [0.0005],  # Average value as default
             "Sectors_Scheduled": [0.0005],  # Average value as default
             "Year": [year]
@@ -77,7 +80,7 @@ def preprocess_delay_input(data):
         # Reorder columns to match the training set’s feature order
         expected_columns = [
             "Sectors_Scheduled", "Sectors_Flown", "Cancellations", "Year", "Month_Num",
-            "Airline_Encoded", "Departing_Port_Encoded", "Arriving_Port_Encoded", "Route_Encoded"
+            "Airline_Encoded", "Departing_Port_Encoded", "Arriving_Port_Encoded"
         ]
         processed_data = processed_data[expected_columns]
 
@@ -111,15 +114,16 @@ def preprocess_pricing_input(data):
         # Parse the date to extract month abbreviation
         date_obj = datetime.strptime(data["date"], "%d/%m/%Y")
         month_abbreviation = date_obj.strftime("%b")  # Get first 3 letters of the month name
-        
-        # Encode the month abbreviation and route
-        month_encoded = month_encoder.transform([month_abbreviation])[0]
-        route = f"{data['departure_port']} - {data['arrival_port']}"
-        route_encoded = route_encoder.transform([route])[0]
 
+        # Encode categorical features
+        month_encoded = month_encoder.transform([month_abbreviation])[0]
+        departing_port_encoded = departing_port_encoder.transform([data["departure_port"]])[0]
+        arriving_port_encoded = arriving_port_encoder.transform([data["arrival_port"]])[0]
+        
         # Create a DataFrame with the original features
         input_data = pd.DataFrame({
-            "route": [route_encoded],
+            "departure_port": [departing_port_encoded],
+            "arrival_port": [arriving_port_encoded],
             "month": [month_encoded]
         })
 
