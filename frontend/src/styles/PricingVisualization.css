@@ -1,0 +1,31 @@
+
+.flight-prediction {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: Arial, sans-serif;
+}
+
+.loading-message {
+  font-size: 1.2em;
+  color: #555;
+  margin: 10px 0;
+}
+
+.chart-container {
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  width: 90%;
+  max-width: 600px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.chart-container h3 {
+  font-size: 1.5em;
+  margin-bottom: 20px;
+  color: #333;
+}

@@ -6,6 +6,7 @@ import joblib
 from datetime import datetime
 from sklearn.preprocessing import LabelEncoder
 
+# Initialize FastAPI app
 app = FastAPI()
 
 # Enable CORS for frontend communication

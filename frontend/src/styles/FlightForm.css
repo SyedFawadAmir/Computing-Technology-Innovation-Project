@@ -118,4 +118,32 @@
     background-color: #002244;
     color: #fff;
   }
+.warning {
+  color: red;
+  font-size: 0.9em;
+  margin-top: 0.25em;
   
+}
+.suggestions {
+  border: 1px solid #ccc;
+  border-top: none;
+  list-style: none;
+  max-height: 150px;
+  overflow-y: auto;
+  padding: 0; /* Consider adding some padding if needed */
+  position: absolute; /* Position the suggestions absolutely */
+  width: 100%; /* Match input width directly */
+  z-index: 1000; /* High enough to be on top of other elements */
+  background-color: white; /* Ensure background color is set for visibility */
+  margin-top: 0; /* Ensure no margin that would push it down */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add subtle shadow for depth */
+}
+
+.suggestions li {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.suggestions li:hover {
+  background-color: #f0f0f0; /* Change background on hover */
+}
