@@ -2,25 +2,20 @@
 import React from 'react';
 import '../styles/NavBar.css';
 
-function Navbar({ setCurrentPage }) {
+const NavBar = () => {
   return (
     <nav className="navbar">
-      <div className="navbar-logo">Flight Network</div>
-      <ul className="navbar-links">
-        <li>
-          <a href="#" onClick={() => setCurrentPage('home')}>Home</a>
-        </li>
-        <li>
-          <a href="#" onClick={() => setCurrentPage('about')}>About Us</a>
-        </li>
-        <li>
-          <a href="https://www.youtube.com/your-video-link" target="_blank" rel="noopener noreferrer">
-            Video Presentation
-          </a>
-        </li>
-      </ul>
+      <div className="navbar-logo">
+        <img src="/Logo.png" alt="Flight Network Logo" />
+        <div className="navbar-text">Flight Network</div>
+      </div>
+      <div className="navbar-links">
+        <button className="navbar-button">Home</button>
+        <button className="navbar-button">About Us</button>
+        <button className="navbar-button">Video Presentation</button>
+      </div>
     </nav>
   );
-}
+};
 
-export default Navbar;
+export default NavBar;
